@@ -1,33 +1,51 @@
 plugins {
-    id 'com.android.library'
-    id 'com.facebook.react'
+  id 'com.android.library'
+  id 'com.facebook.react'
 }
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+  namespace "com.myimagedecoder"
+  compileSdkVersion rootProject.ext.get("compileSdkVersion")
 
-    defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
-    }
-
+  defaultConfig {
+    minSdkVersion rootProject.ext.get("minSdkVersion")
+    targetSdkVersion rootProject.ext.get("targetSdkVersion")
+    versionCode 1
+    versionName "1.0"
+    consumerProguardFiles "consumer-rules.pro"
     externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
+      cmake {
+        arguments "-DANDROID_STL=c++_shared"
+      }
     }
+  }
 
-    sourceSets {
-        main {
-            java.srcDirs = ['src/main/java']
-            jniLibs.srcDirs = ['src/main/jniLibs']
-            cpp.srcDirs = ['src/main/cpp']
-        }
+  externalNativeBuild {
+    cmake {
+      path file("CMakeLists.txt")
     }
+  }
+
+  sourceSets {
+    main {
+      java.srcDirs = ['src/main/java']
+      manifest.srcFile 'src/main/AndroidManifest.xml'
+      jniLibs.srcDirs = ['src/main/jniLibs']
+      res.srcDirs = []
+      assets.srcDirs = []
+    }
+  }
+
+  buildFeatures {
+    prefab true
+  }
+
+  // Для нової архітектури під Hermes
+  packagingOptions {
+    pickFirst '**/libc++_shared.so'
+  }
 }
 
 dependencies {
-    implementation 'com.facebook.react:react-native:+'
+  implementation 'com.facebook.react:react-android'
 }

@@ -1,8 +1,26 @@
-const { createRunOncePlugin } = require('@expo/config-plugins');
+const {
+  withGradleProperties,
+  createRunOncePlugin,
+} = require('@expo/config-plugins');
 
+/**
+ * Увімкнути нову архітектуру в android/gradle.properties під час EAS/prebuild.
+ */
 const withMyImageDecoder = (config) => {
-  // Якщо потрібно, додати кастомні налаштування у android/app/build.gradle або gradle.properties
-  return config;
+  return withGradleProperties(config, (config) => {
+    const props = config.modResults;
+    const has = props.find((p) => p.type === 'property' && p.key === 'newArchEnabled');
+    if (!has) {
+      props.push({ type: 'property', key: 'newArchEnabled', value: 'true' });
+    } else {
+      has.value = 'true';
+    }
+    return config;
+  });
 };
 
-module.exports = createRunOncePlugin(withMyImageDecoder, 'with-my-image-decoder', '1.0.0');
+module.exports = createRunOncePlugin(
+  withMyImageDecoder,
+  'with-my-image-decoder',
+  '1.0.0'
+);

@@ -1,28 +1,31 @@
 {
   "name": "my-image-decoder",
   "version": "1.0.0",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "description": "JSI image decoder for React Native + Expo (Android). Decodes PNG/JPEG -> RGBA Uint8Array.",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
+    "lib",
     "src",
     "android",
     "plugin",
-    "app.plugin.js"
+    "app.plugin.js",
+    "react-native.config.js",
+    "README.md"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
   "peerDependencies": {
-    "react-native": ">=0.70"
+    "react-native": ">=0.71"
   },
   "devDependencies": {
-    "@expo/config-plugins": "^6.0.0",
-    "typescript": "^4.0.0"
-  },
-  "scripts": {
-    "build": "tsc"
+    "typescript": "^5.4.0",
+    "@expo/config-plugins": "^8.0.0"
   },
   "react-native": {
-    "platforms": {
-      "android": null,
-      "ios": null
-    }
+    "android": "android"
   }
 }
