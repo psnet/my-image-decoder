@@ -3,6 +3,20 @@ plugins {
   id 'com.facebook.react'
 }
 
+def findNodeModulesDir(startDir) {
+  def dir = startDir
+  while (dir != null) {
+    def nm = new File(dir, "node_modules")
+    if (nm.exists()) return nm
+    dir = dir.getParentFile()
+  }
+  return null
+}
+
+def nodeModules = findNodeModulesDir(projectDir)
+def reactNativeDir = new File(nodeModules, "react-native")
+def reactAndroidDir = new File(reactNativeDir, "ReactAndroid")
+
 android {
   namespace "com.myimagedecoder"
   compileSdkVersion rootProject.ext.get("compileSdkVersion")
@@ -12,12 +26,14 @@ android {
     targetSdkVersion rootProject.ext.get("targetSdkVersion")
     versionCode 1
     versionName "1.0"
-    consumerProguardFiles "consumer-rules.pro"
+
     externalNativeBuild {
       cmake {
+        // потрібна статика C++ для RN JSI
         arguments "-DANDROID_STL=c++_shared"
       }
     }
+    consumerProguardFiles "consumer-rules.pro"
   }
 
   externalNativeBuild {
@@ -30,22 +46,36 @@ android {
     main {
       java.srcDirs = ['src/main/java']
       manifest.srcFile 'src/main/AndroidManifest.xml'
-      jniLibs.srcDirs = ['src/main/jniLibs']
       res.srcDirs = []
       assets.srcDirs = []
+      jniLibs.srcDirs = ['src/main/jniLibs']
     }
   }
 
-  buildFeatures {
-    prefab true
-  }
-
-  // Для нової архітектури під Hermes
+  // щоб уникнути конфліктів STL
   packagingOptions {
     pickFirst '**/libc++_shared.so'
   }
 }
 
+/**
+ * Дуже важливо: гарантуємо, що ReactAndroid згенерує/скопіює свої jni libs
+ * (libjsi.so, libreactnativejni.so) ДО запуску нашого externalNativeBuild.
+ * Це вирішує помилку "missing .../libjsi.so".
+ */
+afterEvaluate {
+  // якщо модуль ReactAndroid доступний як градел-проєкт (типовий кейс у RN застосунках)
+  if (findProject(':ReactAndroid') != null) {
+    tasks.matching { t ->
+      t.name.toLowerCase().contains('externalnativebuild') ||
+      t.name.toLowerCase().contains('cmake')
+    }.all { t ->
+      t.dependsOn(':ReactAndroid:copyReactNativeJniLibsProjectOnly')
+    }
+  }
+}
+
 dependencies {
+  // Потрібно, щоби були доступні заголовки/артефакти RN під час збірки
   implementation 'com.facebook.react:react-android'
 }
