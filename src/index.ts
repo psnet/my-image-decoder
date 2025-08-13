@@ -1,19 +1,33 @@
-/**
- * JS-обгортка над JSI-функцією. Вона інсталюється нативною ініціалізацією.
- * Під капотом ми додаємо глобальну функцію: global.__mid_decodeImage(u8, premul)
- */
-type DecodeResult = { data: Uint8Array; width: number; height: number };
+import { NativeModulesProxy } from 'expo-modules-core';
 
-export function decodeImage(
-  data: Uint8Array,
-  options: { premultiplyAlpha: boolean } = { premultiplyAlpha: true }
-): DecodeResult {
-  // @ts-ignore - глобалку додає JSI під час ініціалізації
-  const fn = global.__mid_decodeImage;
-  if (typeof fn !== 'function') {
-    throw new Error(
-      'my-image-decoder: JSI is not installed. Ensure EAS build (not Expo Go) and new architecture enabled.'
-    );
+type DecodeOptions = {
+  premultiplyAlpha?: boolean;
+};
+
+type DecodedImage = {
+  data: Uint8Array;
+  width: number;
+  height: number;
+};
+
+const { ImageDecoderModule } = NativeModulesProxy;
+
+export async function decodeImage(
+  bytes: Uint8Array,
+  options?: DecodeOptions
+): Promise<DecodedImage> {
+  if (!ImageDecoderModule) {
+    throw new Error('ImageDecoderModule is not linked properly.');
   }
-  return fn(data, !!options.premultiplyAlpha);
+
+  const result = await ImageDecoderModule.decodeByteArray(
+    Array.from(bytes),
+    options?.premultiplyAlpha ?? true
+  );
+
+  return {
+    data: new Uint8Array(result.data),
+    width: result.width,
+    height: result.height
+  };
 }
