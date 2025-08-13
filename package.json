@@ -1,6 +1,6 @@
 {
   "name": "my-image-decoder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JSI image decoder for React Native + Expo (Android). Decodes PNG/JPEG -> RGBA Uint8Array.",
   "license": "MIT",
   "main": "lib/index.js",
